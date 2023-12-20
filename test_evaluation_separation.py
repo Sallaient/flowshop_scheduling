@@ -9,7 +9,7 @@ from time import time
 if __name__ == "__main__":
     fs = flowshop.lire_flowshop("jeu2-704.txt")
     fs = flowshop.lire_flowshop("jeu3-973.txt")
-    # fs = flowshop.lire_flowshop("jeu4-844.txt")
+    fs = flowshop.lire_flowshop("jeu4-844.txt")
     print()
     start = time()
     val_solution, liste_solution, _ = flowshop.evaluation_separation(fs)

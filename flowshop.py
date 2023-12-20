@@ -281,8 +281,6 @@ def eval(ordo, liste_jobs):
     ''' Renvoie la valeur du minorant en tenant compte de l'ordonnancement 
         'ordo' et des jobs non places de liste_jobs
     '''
-    # On utilise LB2 qui est beaucoup plus efficace que LB1
-
     nb_machines = len(ordo['disponibilité'])
 
     ############## Version bizarre qui marche ####################
@@ -297,16 +295,17 @@ def eval(ordo, liste_jobs):
     ############## Version du cours longue ####################
     # LB = []
     # for machine in range(nb_machines):
-    #     LB.append(ordo['disponibilité'][machine] + 
+    #     LB.append(
     #               min([date_dispo(machine, job) for job in liste_jobs]) + 
     #               sum([job['durée'][machine] for job in liste_jobs]) + 
     #               min([duree_latence(machine, job, nb_machines) for job in liste_jobs]) )
 
-    # return  max(LB)
+    # return  ordo['disponibilité'][0] + max(LB)
 
 
 
     ############## Version avec LB2 (voir papier scientifique indiqué dans le TP) ####################
+
 
     if liste_jobs.__len__==0:
         return ordo['diponibilité'][nb_machines-1]
@@ -322,11 +321,9 @@ def eval(ordo, liste_jobs):
 
         dates_de_latence = [duree_latence(machine, job, nb_machines) for job in liste_jobs]
 
-        LB2.append(ordo['disponibilité'][machine] + makespan + min(dates_de_latence))
+        LB2.append(makespan + min(dates_de_latence))
 
-    print(len(liste_jobs))
-    print(LB2)
-    return max(LB2)
+    return ordo['disponibilité'][0] + max(LB2)
 
 def creer_sommet(evaluation, places, non_places, numero):
     # liste des jobs déjà placés
@@ -390,7 +387,7 @@ def evaluation_separation(flowshop):
             
             else:
                 new_eval = eval(new_ordo, new_non_places)
-                if new_eval < val_solution:
+                if new_eval <= val_solution:
                     numero += 1
                     s = creer_sommet(new_eval, new_places, new_non_places, numero)
                     heapq.heappush(arbre, s)
