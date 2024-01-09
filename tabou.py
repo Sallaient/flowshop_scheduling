@@ -30,7 +30,7 @@ def getNeighbours(solution):
 
 def tabou(flow_shop, maxTabou=20):
 
-    nb_machines = flow_shop['nb_machines']
+    nb_machines = flow_shop['nombre machines']
     solution_init = flowshop.liste_NEH(flow_shop)
     # Initialisation
     best = solution_init.copy()
@@ -38,23 +38,24 @@ def tabou(flow_shop, maxTabou=20):
     tabouList = queue.Queue(maxsize=maxTabou)
     add_tabou(tabouList, solution_init)
     i = 0
-    while i < nb_machines**5:
+    imax = nb_machines**6
+    print("imax = ", imax)
+    while i < imax:
         i += 1
         listNeighbours = getNeighbours(bestCandidate)
-        bestCandidateValue = - np.inf
         for candidate in listNeighbours:
-            if candidate not in tabouList:
+            if candidate not in tabouList.queue:
                 candidateValue = getValue(candidate, nb_machines)
-                if candidateValue > bestCandidateValue:
+                if candidateValue < getValue(bestCandidate, nb_machines):
                     bestCandidate = candidate.copy()
-                    bestCandidateValue = candidateValue
-        if bestCandidateValue == - np.inf:
-            break
         if getValue(bestCandidate, nb_machines) > getValue(best, nb_machines):
             best = bestCandidate.copy()
         add_tabou(tabouList, bestCandidate)
 
-    return best, getValue(best, nb_machines)
+    # Affichage
+    ordo = flowshop.creer_ordo_vide(nb_machines)
+    flowshop.ordonnancer_liste_jobs(ordo,best)
+    flowshop.afficher_ordo(ordo)
 
 
 def tabouFromFile(fs_path, maxTabou=20):
