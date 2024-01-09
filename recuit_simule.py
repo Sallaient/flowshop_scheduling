@@ -1,6 +1,7 @@
 from random import random, randint
 import numpy as np
 import flowshop
+import time
 
 def sol_voisine(solution):
     indexes = [i for i in range(len(solution))]
@@ -22,18 +23,22 @@ def energie(solution, nb_machines):
     return ordo['disponibilité'][nb_machines-1]
 
 
-def recuit_simule(solution_init, nb_machines, max_iter=1000, energie_max=100, temp_init = 100):
-    
+def recuit_simule(fs):
     # Initialisation
-    solution = solution_init.copy()
-    energie_ordo = energie(solution_init, nb_machines)
-    temp = temp_init
-    iter = 0
+    nb_machines = fs['nombre machines']
+    nb_jobs = len(fs['liste jobs'])
+    solution = flowshop.liste_NEH(fs)
+    print("Valeur initiale :", energie(solution, nb_machines))
+    
+    energie_ordo = energie(solution, nb_machines)
 
-    meilleur_sol = solution_init.copy()
+    max_iter = 1e6
+    temp = 1e7
+
+    meilleur_sol = solution.copy()
     meilleur_energie = energie_ordo
 
-    # while iter < max_iter and energie_ordo > energie_max:
+    iter = 0
     while iter < max_iter:
         solution_voisine = sol_voisine(solution)
         energie_voisin = energie(solution_voisine, nb_machines)
@@ -45,40 +50,57 @@ def recuit_simule(solution_init, nb_machines, max_iter=1000, energie_max=100, te
         if energie_ordo < meilleur_energie:
             meilleur_sol = solution.copy()
             meilleur_energie = energie_ordo
-            # print(f'iter : {iter}, energie : {energie_ordo}')
 
+        temp = temp * 0.9999
+        if temp < 1e-10:
+            break
 
-        temp = temp_init * 0.99
         iter += 1
 
+    if iter == max_iter:
+        print("Max iteration reached")
+    if temp < 1e-10:
+        print("Temp too small")
+    
+        
     return meilleur_sol, meilleur_energie
 
 
-def erreur(fs_path, max_iter=1e4, temp_init = 1e6, nb_iter=20):
+def iter_recuit_simule(fs_path, nb_iter_recuit=10):
     fs = flowshop.lire_flowshop(fs_path)
-    optimum = int(fs_path.split('-')[1].split('.')[0])
+    optimum = int(fs_path.split('-')[1].split('.')[0]) # Ou meilleure valeure connue
 
+    valeurs_sol = []
+    solutions = []
     erreurs = []
-    for i in range(nb_iter):
-        l_NEH = flowshop.liste_NEH(fs)
-        sol, energie = recuit_simule(l_NEH, fs['nombre machines'], max_iter=max_iter, temp_init=temp_init)
-        erreurs.append(abs((optimum - energie)/optimum))
+
+    for i in range(nb_iter_recuit):
+        
+        sol, energie = recuit_simule(fs)
+        valeurs_sol.append(energie)
+        erreurs.append((energie - optimum)/optimum)
+        solutions.append(sol)
         
         print(f'energie: {energie}, erreur : {erreurs[-1]*100:.2f}%')
     
+    print(f'meilleure solution : {[job["numéro"] for job in solutions[np.argmin(valeurs_sol)]]} valeur : {min(valeurs_sol)}, erreur : {min(erreurs)*100:.2f}%')
     print(f'erreur moyenne : {np.mean(erreurs)*100:.2f}%')
+    return valeurs_sol, erreurs
 
 
 if __name__ == "__main__":
-    # solution_init = [1, 2, 3, 4, 5, 6, 7, 8, 9]
-    # print(sol_voisine(solution_init))
+    fs_path = "tai01-1278.txt" # meilleure solution : [2, 16, 14, 5, 4, 7, 8, 13, 6, 10, 1, 12, 0, 18, 3, 17, 15, 9, 19, 11] valeur : 1278, erreur : 0.00%
+    fs_path = "tai11-1582.txt"
+    # fs_path = "tai21-2297.txt"
+    # fs_path = "tai31-2724.txt"
+    # fs_path = "tai41-2991.txt"
+    fs_path = "tai51-3874.txt"
 
-    # fs = flowshop.lire_flowshop("jeu4-844.txt")
-    # l_NEH = flowshop.liste_NEH(fs)
-    
-    # print(recuit_simule(l_NEH, fs['nombre machines'], max_iter=1e5, temp_init=1e6))
+    fs = flowshop.lire_flowshop(fs_path)
 
-    # fs_path = "jeu2-704.txt"
-    # fs_path = "jeu3-973.txt"
-    fs_path = "jeu4-844.txt"
-    erreur(fs_path, max_iter=1e5, temp_init=1e6, nb_iter=20)
+    start = time.time()
+    meilleur_sol, meilleur_energie = recuit_simule(fs)
+    end = time.time()
+
+    print([job['numéro'] for job in meilleur_sol], meilleur_energie)
+    print(end - start, "s")

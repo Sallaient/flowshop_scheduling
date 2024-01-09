@@ -1,0 +1,2 @@
+
+            solution = solution_voisine

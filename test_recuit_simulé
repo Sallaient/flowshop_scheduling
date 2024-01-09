@@ -1,0 +1,8 @@
+import recuit_simule
+import flowshop
+
+
+if __name__ == "__main__":
+    fs_path = "tai01-1278.txt"
+    valeurs_sols, erreurs = recuit_simule.iter_recuit_simule(fs_path, nb_iter_recuit=10, max_iter=1e5, temp_init=5e5)
+
