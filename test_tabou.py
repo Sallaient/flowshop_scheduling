@@ -1,5 +1,4 @@
 import tabou
 
-path = "tai01.txt"
-for i in range(10):
-    tabou.tabouFromFile(path, maxTabou=50, printOrdo=False)
+path = "tai11.txt"
+tabou.tabouFromFile(path, maxTabou=50, printOrdo=False, repmax=1000)
