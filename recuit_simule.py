@@ -33,12 +33,13 @@ def recuit_simule(fs):
     energie_ordo = energie(solution, nb_machines)
 
     max_iter = 1e6
-    temp = 1e7
+    temp = 1e14
 
     meilleur_sol = solution.copy()
     meilleur_energie = energie_ordo
 
     iter = 0
+    start = time.time()
     while iter < max_iter:
         solution_voisine = sol_voisine(solution)
         energie_voisin = energie(solution_voisine, nb_machines)
@@ -54,13 +55,19 @@ def recuit_simule(fs):
         temp = temp * 0.9999
         if temp < 1e-10:
             break
-
+        
+        # Fin si 
+        end = time.time()
+        if end - start > 60 * 5:
+            break
         iter += 1
 
     if iter == max_iter:
         print("Max iteration reached")
     if temp < 1e-10:
         print("Temp too small")
+    if end - start > 60 * 5:
+        print("Time limit reached")
     
         
     return meilleur_sol, meilleur_energie
@@ -89,8 +96,8 @@ def iter_recuit_simule(fs_path, nb_iter_recuit=10):
 
 
 if __name__ == "__main__":
-    fs_path = "tai01-1278.txt" # meilleure solution : [2, 16, 14, 5, 4, 7, 8, 13, 6, 10, 1, 12, 0, 18, 3, 17, 15, 9, 19, 11] valeur : 1278, erreur : 0.00%
-    fs_path = "tai11-1582.txt"
+    # fs_path = "tai01-1278.txt"
+    # fs_path = "tai11-1582.txt"
     # fs_path = "tai21-2297.txt"
     # fs_path = "tai31-2724.txt"
     # fs_path = "tai41-2991.txt"
@@ -103,4 +110,4 @@ if __name__ == "__main__":
     end = time.time()
 
     print([job['numéro'] for job in meilleur_sol], meilleur_energie)
-    print(end - start, "s")
+    print(f'{end - start:.2f} s')
