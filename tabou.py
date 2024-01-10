@@ -35,7 +35,7 @@ def getNeighbours(solution):
     # print(len(neighboursList))
     return neighboursList
 
-def tabou(flow_shop, maxTabou, printOrdo=False):
+def tabou(flow_shop, maxTabou, printOrdo=False, repmax=1000):
 
     nb_machines = flow_shop['nombre machines']
     solution_init = flow_shop['liste jobs']
@@ -49,7 +49,11 @@ def tabou(flow_shop, maxTabou, printOrdo=False):
     i = 0
     imax = nb_machines**5
     # print("imax = ", imax)
-    while i < imax:
+    # Make a break if the solution is not improving for n iterations
+    lastBestValue = getValue(best, nb_machines)
+    lastBestValueCount = 0
+
+    while lastBestValueCount < repmax and i < imax:
         i += 1
         listNeighbours = getNeighbours(bestCandidate)
         for candidate in listNeighbours:
@@ -61,6 +65,12 @@ def tabou(flow_shop, maxTabou, printOrdo=False):
         if getValue(bestCandidate, nb_machines) < getValue(best, nb_machines):
             best = bestCandidate.copy()
         add_tabou(tabouList, bestCandidate)
+        if getValue(best, nb_machines) == lastBestValue:
+            lastBestValueCount += 1
+        else:
+            lastBestValueCount = 0
+            lastBestValue = getValue(best, nb_machines)
+    print(lastBestValueCount, i)
 
     # Affichage
     if printOrdo:
@@ -70,6 +80,6 @@ def tabou(flow_shop, maxTabou, printOrdo=False):
     else:
         print(getValue(best, nb_machines))
 
-def tabouFromFile(fs_path, maxTabou=20, printOrdo=False):
+def tabouFromFile(fs_path, maxTabou=20, printOrdo=False, repmax=1000):
     fs = flowshop.lire_flowshop(fs_path)
-    tabou(fs, maxTabou, printOrdo=printOrdo)
+    tabou(fs, maxTabou, printOrdo=printOrdo, repmax=1000)
