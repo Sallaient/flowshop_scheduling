@@ -20,11 +20,19 @@ def getValue(solution, nb_machines):
 
 def getNeighbours(solution):
     neighboursList = []
+
+    # Test each position for a random job by interchanging it with all the other jobs
     indexes = [i for i in range(len(solution))]
     idx = indexes.pop(randint(0, len(indexes)-1))
     for i in indexes:
         neighboursList.append(solution.copy())
         neighboursList[-1][idx], neighboursList[-1][i] = neighboursList[-1][i], neighboursList[-1][idx]
+
+    # Rotate the list of jobs 
+    for i in range(1, len(solution)):
+        neighboursList.append(solution[i:] + solution[:i])
+    
+    # print(len(neighboursList))
     return neighboursList
 
 def tabou(flow_shop, maxTabou, printOrdo=False):
@@ -62,6 +70,6 @@ def tabou(flow_shop, maxTabou, printOrdo=False):
     else:
         print(getValue(best, nb_machines))
 
-def tabouFromFile(fs_path, maxTabou=20):
+def tabouFromFile(fs_path, maxTabou=20, printOrdo=False):
     fs = flowshop.lire_flowshop(fs_path)
-    tabou(fs, maxTabou)
+    tabou(fs, maxTabou, printOrdo=printOrdo)
