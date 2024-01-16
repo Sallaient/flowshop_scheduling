@@ -1,14 +1,14 @@
-import flowshop
+import flowshop as fl
 import random
-from math import floor # pour arrondir à l'entier inférieur
+from math import floor  # pour arrondir à l'entier inférieur
 
 
-def croisement(self, pos: int):
+def croisement(pop_size: int, population: list, pos: int):
     """On choisit aléatoirement des élément de la population des parent que l'on croise à l'indice pos puis on les corrige et on récupère la moitié des parents et la moitié des enfants"""
-    # print(self.population,"\n")
-    population = self.population.copy()
-    new_population = [None for _ in range(self.taille_population)]
-    for i in range(floor(self.taille_population/2)):
+    # print( population,"\n")
+    population = population.copy()
+    new_population = [None for _ in range(pop_size)]
+    for i in range(floor(pop_size/2)):
         parent1 = random.choice(population)
         population.remove(parent1)
         parent2 = random.choice(population)
@@ -18,7 +18,7 @@ def croisement(self, pos: int):
         new_population[2*i] = enfant1
         new_population[2*i+1] = enfant2
         # print(parent1,"\t",parent2,"\t",enfant1,"\t",enfant2)
-    for i in range(self.taille_population):
+    for i in range(pop_size):
         if new_population[len(new_population)-1-i] == None:
             new_population[len(new_population)-1-i] = population[i]
     for child in new_population:
@@ -37,59 +37,70 @@ def croisement(self, pos: int):
             e = random.choice(manquants)
             child[doublon] = e
             manquants.remove(e)
-    population = [None for _ in range(self.taille_population)]
-    for i in range(self.taille_population):
+    population = [None for _ in range(pop_size)]
+    for i in range(pop_size):
         if i % 2 == 0:
-            population[i] = random.choice(self.population)
-            self.population.remove(population[i])
+            population[i] = random.choice(population)
+            population.remove(population[i])
         if i % 2 == 1:
             population[i] = random.choice(new_population)
             new_population.remove(population[i])
-        self.population = population
-        # print("\n",self.population)
+        population = population
+        # print("\n", population)
+
+    return population
 
 
-def mutation(self):
+def mutation(pop_size: int, population: list, taux_mutation: float):
     """Mutation de la population en echangeant la position de deux jobs"""
-    for i in range(round(self.taille_population*self.taux_mutation)):
-        mutant = random.choice(self.population)
+    for i in range(round(pop_size * taux_mutation)):
+        mutant = random.choice(population)
         pos1, pos2 = random.randint(
             0, len(mutant)-1), random.randint(0, len(mutant)-1)
         while (pos1 == pos2):
             pos2 = random.randint(0, len(mutant)-1)
         mutant[pos1], mutant[pos2] = mutant[pos2], mutant[pos1]
+    return population
 
 
-def eval(self):
+def eval(population: list, flowshop, nb_machines: int, meilleur_temps: int, meilleure_solution: list):
     """evalue le meilleur temps d'une population donnée"""
-    for candidat in self.population:
+    for candidat in population:
         liste_jobs = [None for _ in range(len(candidat))]
         for i in range(len(candidat)):
-            for job in self.flowshop.liste_jobs:
-                if job.num_job == candidat[i]:
+            for job in flowshop['liste jobs']:
+                if job['numéro'] == candidat[i]:
                     liste_jobs[i] = job
-        ordo = Ordonnancement(self.flowshop.nb_machines, liste_jobs)
+        ordo = fl.creer_ordo_liste_jobs(nb_machines, liste_jobs)
         # ordo.afficher_ordo()
         # for job in liste_jobs :
         #     job.afficher_job()
-        if ordo.getCMax() < self.meilleur_temps:
-            self.meilleur_temps = ordo.getCMax()
-            self.meilleure_solution = candidat
+        if ordo['disponibilité'][nb_machines-1] < meilleur_temps:
+            meilleur_temps = ordo['disponibilité'][nb_machines-1]
+            meilleure_solution = candidat
+    return meilleur_temps, meilleure_solution
 
 
-def recherche(self, nb_iterations: int):
+def recherche(pop_size: int, flowshop, taux_mutation: float, nb_iterations: int):
     """méthode principale du GA pour trouver une solution optimale à un flow shop"""
+    population = [None for _ in range(pop_size)]
+    meilleur_temps = 10**20
+    meilleure_solution = [None for _ in range(len(flowshop['liste jobs']))]
+    nb_machines = flowshop['nombre machines']
+
     for i in range(nb_iterations):
-        pos = random.randint(0, len(self.population[0]))
-        self.croisement(pos)
-        self.mutation()
-        self.eval()
+        pos = random.randint(0, len(population[0]))
+        population = croisement(pop_size, population, pos)
+        population = mutation(pop_size, population, taux_mutation)
+        meilleur_temps, meilleure_solution = eval(
+            population, flowshop, nb_machines, meilleur_temps, meilleure_solution)
     print("La meilleur solution trouvée avec l'algorithme génétique au bout de ",
           nb_iterations, " itérations est :")
-    liste_jobs = [None for _ in range(len(self.meilleure_solution))]
-    for i in range(len(self.meilleure_solution)):
-        for job in self.flowshop.liste_jobs:
-            if job.num_job == self.meilleure_solution[i]:
+    liste_jobs = [None for _ in range(len(meilleure_solution))]
+    for i in range(len(meilleure_solution)):
+        for job in flowshop['liste jobs']:
+            if job['numéro'] == meilleure_solution[i]:
                 liste_jobs[i] = job
-    Ordonnancement(self.flowshop.nb_machines, liste_jobs).afficher_ordo()
-    print("population de ", self.taille_population, ".")
+    ordo = fl.creer_ordo_liste_jobs(nb_machines, liste_jobs)
+    fl.afficher_ordo(ordo)
+    print("population de ", pop_size, ".")
