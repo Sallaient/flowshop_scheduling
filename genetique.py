@@ -122,6 +122,6 @@ def recherche(pop_size: int, flowshop, taux_mutation: float, nb_iterations: int,
     print("population de ", pop_size, ".")
 
 
-def genetique_from_file(path, pop_size=100, taux_mutation=0.1, nb_iterations=1000000):
+def genetique_from_file(path, pop_size=100, taux_mutation=0.2, nb_iterations=10000):
     flowshop = fl.lire_flowshop(path)
     recherche(pop_size, flowshop, taux_mutation, nb_iterations)

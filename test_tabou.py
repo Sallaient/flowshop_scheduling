@@ -1,4 +1,4 @@
 import tabou
 
-path = "tai11-1582.txt"
-tabou.tabouFromFile(path, maxTabou=50, printOrdo=False, repmax=1000)
+path = "tai51-3874.txt"
+tabou.tabouFromFile(path, maxTabou=50, printOrdo=True, repmax=1000)
